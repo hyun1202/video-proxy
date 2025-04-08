@@ -1,5 +1,6 @@
 package example.videoproxy.filter;
 
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.annotation.Order;
@@ -14,18 +15,19 @@ import java.util.List;
 
 @Component
 @Order(-1)
+@Slf4j
 public class VideoCorsFilter implements WebFilter {
-    private final Logger logger = LoggerFactory.getLogger(this.getClass());
     private final List<String> allowOrigins = List.of(
             "https://ecuwdemo2698.cafe24.com",
-            "http://127.0.0.1:5500"
+            "http://127.0.0.1:5500",
+            "https://ecudemo357864.cafe24.com"
     );
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
         String origin = exchange.getRequest().getHeaders().getOrigin();
         origin = removeEndSeparation(origin);
-        logger.debug("origin= {}", origin);
+        log.info("origin = {}", origin);
         if (origin == null || !allowOrigins.contains(origin)) {
             exchange.getResponse().setStatusCode(HttpStatus.FORBIDDEN);
             exchange.getResponse().getHeaders().add("X-Reason", "Invalid or missing Origin: " + (origin != null ? origin : "null"));

@@ -1,15 +1,14 @@
 package example.videoproxy;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 
+@Slf4j
 @Service
 public class VideoService {
-    private final Logger logger = LoggerFactory.getLogger(this.getClass());
     private final WebClient webClient;
 
     public VideoService(WebClient.Builder webClientBuilder) {
@@ -17,7 +16,7 @@ public class VideoService {
     }
 
     public Flux<DataBuffer> streamVideo(String url) {
-        logger.debug("request url= {}", url);
+        log.debug("request url= {}", url);
         return webClient.get()
                 .uri(url)
                 .retrieve()
