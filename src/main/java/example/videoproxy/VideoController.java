@@ -1,5 +1,7 @@
 package example.videoproxy;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.CacheControl;
 import org.springframework.http.MediaType;
@@ -23,7 +25,6 @@ public class VideoController {
 
     @GetMapping(produces = "video/mp4")
     public ResponseEntity<Flux<DataBuffer>> streamVideo(@RequestParam("url") String url) {
-        System.out.println("hello®");
         Flux<DataBuffer> res = videoService.streamVideo(url);
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType("video/mp4"))
