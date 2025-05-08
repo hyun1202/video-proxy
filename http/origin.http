@@ -1,0 +1,23 @@
+### origin get
+GET localhost:8080/origins
+Origin: http://admin
+
+### origin add
+POST localhost:8080/origins
+Content-Type: application/json
+Origin: http://admin
+
+{
+  "origin": "http://"
+}
+
+### origin remove
+DELETE localhost:8080/origins
+Content-Type: application/json
+Origin: http://admin
+
+{
+  "origin": "http://"
+}
+
+

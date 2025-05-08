@@ -14,3 +14,7 @@ management:
     web:
       exposure:
         include: "*"
+
+data:
+  origin:
+    path: ${ORIGIN_DATA_PATH}

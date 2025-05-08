@@ -1,0 +1,12 @@
+services:
+  video-app:
+    container_name: video-app
+    image: openjdk:21-jdk-slim
+    ports:
+      - "8081:8080"
+      - "18081:18088"
+    volumes:
+      - "./build/libs:/home/user"
+    environment:
+      - TZ=Asia/Seoul
+    command: "java -jar /home/user/video-proxy-0.0.1-SNAPSHOT.jar"

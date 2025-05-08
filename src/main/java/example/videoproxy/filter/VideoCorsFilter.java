@@ -1,5 +1,6 @@
 package example.videoproxy.filter;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,12 +17,14 @@ import java.util.List;
 @Component
 @Order(-1)
 @Slf4j
+@RequiredArgsConstructor
 public class VideoCorsFilter implements WebFilter {
-    private final List<String> allowOrigins = List.of(
-            "https://ecuwdemo2698.cafe24.com",
-            "http://127.0.0.1:5500",
-            "https://ecudemo357864.cafe24.com"
-    );
+    private final AllowOrigin allowOrigins;
+
+//    private final List<String> allowOrigins = List.of(
+//            "https://ecuwdemo2698.cafe24.com",
+//            "https://ecudemo357864.cafe24.com"
+//    );
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
