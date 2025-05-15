@@ -38,3 +38,6 @@ out/
 
 logs
 origin
+*.mp4
+*.txt
+origin_setting.http

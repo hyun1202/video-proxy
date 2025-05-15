@@ -1,5 +1,6 @@
 aaa
-<video
+
+<!-- <video
   crossorigin
         playsinline
         muted
@@ -8,16 +9,34 @@ aaa
         autoplay
         width="500"
         height="500"
-      ></video>
-    
+      ></video> -->
 
 <video
-  crossorigin
+        crossorigin
         playsinline
         muted
-        src="http://localhost:8080/video?url=https://ecuwdemo2698.cafe24.com/assets/mv/test.txt?a123435351"
-        loop
+        src="test.mp4"
+        loops
         autoplay
         width="500"
         height="500"
-      ></video>
+>
+      <source src="video/video.mp4" type="video/mp4"/>
+      <source src="video/video.webm" type="video/webm"/>
+      <source src="video/video.mov" type="video/mov"/>
+</video>
+
+<video
+        crossorigin
+        playsinline
+        muted
+        src="http://localhost:8080/video?url=http://localhost:5500/test.txt"
+        loops
+        autoplay
+        width="500"
+        height="500"
+>
+      <source src="video/video.mp4" type="video/mp4"/>
+      <source src="video/video.webm" type="video/webm"/>
+      <source src="video/video.mov" type="video/mov"/>
+</video>

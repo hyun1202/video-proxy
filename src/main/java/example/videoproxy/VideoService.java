@@ -2,6 +2,7 @@ package example.videoproxy;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
@@ -15,15 +16,19 @@ public class VideoService {
         this.webClient = webClientBuilder.build();
     }
 
-    public Flux<DataBuffer> streamVideo(String url) {
+    public Flux<ResponseWithHeaders> streamVideo(String url) {
         log.debug("request url= {}", url);
         return webClient.get()
                 .uri(url)
-                .retrieve()
-                .bodyToFlux(DataBuffer.class)
+                .exchangeToFlux(response -> {
+                    HttpHeaders headers = response.headers().asHttpHeaders();
+                    log.debug("Response headers: {}", headers);
+
+                    return response.bodyToFlux(DataBuffer.class)
+                            .map(dataBuffer -> new ResponseWithHeaders(headers, dataBuffer));
+                })
                 .doOnError(throwable -> {
-                    // 에러 처리 (예: URL이 잘못된 경우)
-                    System.err.println("Error fetching video: " + throwable.getMessage());
+                    log.error("Error fetching video: {}", throwable.getMessage());
                 });
     }
 

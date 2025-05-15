@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.time.Duration;
 
@@ -24,11 +25,17 @@ public class VideoController {
     }
 
     @GetMapping(produces = "video/mp4")
-    public ResponseEntity<Flux<DataBuffer>> streamVideo(@RequestParam("url") String url) {
-        Flux<DataBuffer> res = videoService.streamVideo(url);
-        return ResponseEntity.ok()
-                .contentType(MediaType.parseMediaType("video/mp4"))
-                .cacheControl(CacheControl.maxAge(Duration.ofDays(14)).cachePublic())
-                .body(res);
+    public Mono<ResponseEntity<Flux<DataBuffer>>> streamVideo(@RequestParam("url") String url) {
+        Flux<ResponseWithHeaders> res = videoService.streamVideo(url);
+        return res.next()
+                .map(first -> {
+                    ResponseEntity.BodyBuilder builder = ResponseEntity.ok()
+                            .headers(first.getHeaders())
+                            .contentType(MediaType.parseMediaType("video/mp4"))
+                            .cacheControl(CacheControl.maxAge(Duration.ofDays(14)).cachePublic());
+
+                    Flux<DataBuffer> dataBufferFlux = res.map(ResponseWithHeaders::getDataBuffer);
+                    return builder.body(dataBufferFlux);
+                });
     }
 }
