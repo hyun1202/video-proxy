@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.util.retry.Retry;
 
 import java.time.Duration;
 import java.util.concurrent.atomic.AtomicLong;
@@ -35,19 +36,8 @@ public class VideoController {
                     builder.headers(first.getHeaders());
                     return builder.body(data);
                 })
-                .switchIfEmpty(Mono.defer(() -> {
-                    log.info("'{}' is first request, so after 1000 millis retry", url);
-                    return Mono.delay(Duration.ofMillis(1000L))
-                            .flatMap(tick -> Mono.just(videoService.streamVideo(url)))
-                            .flatMap(flux -> {
-                                ResponseEntity.BodyBuilder builder = getBodyBuilder();
-                                return flux.next()
-                                        .map(first -> {
-                                            builder.headers(first.getHeaders());
-                                            return builder.body(flux.map(ResponseWithHeaders::getDataBuffer));
-                                        });
-                            });
-                }));
+                .onErrorResume(error -> Mono.empty());
+
     }
 
     private ResponseEntity.BodyBuilder getBodyBuilder() {

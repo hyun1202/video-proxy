@@ -6,8 +6,11 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
+import reactor.util.retry.Retry;
 
+import java.time.Duration;
 import java.util.concurrent.atomic.AtomicLong;
 
 @Slf4j
@@ -23,14 +26,14 @@ public class VideoService {
 
     public Flux<ResponseWithHeaders> streamVideo(String url) {
         log.debug("request url= {}", url);
-        Long contentLength = getContentLength(url);
-        if (contentLength < 0L) {
-            return Flux.empty();
-        }
-        return getDataBuffer(url, contentLength);
+        return getContentLength(url)
+                .retryWhen(Retry.backoff(3, Duration.ofSeconds(1))
+                                   .doBeforeRetry(signal -> log.warn("Retrying for url: {}, attempt: {}, error: {}",
+                                                                     url, signal.totalRetries() + 1, signal.failure().getMessage())))
+                .flatMapMany(length -> getDataFromUrl(url, length));
     }
 
-    private Flux<ResponseWithHeaders> getDataBuffer(String url, Long contentLength) {
+    private Flux<ResponseWithHeaders> getDataFromUrl(String url, Long contentLength) {
         return webClient.get()
                 .uri(url)
                 .exchangeToFlux(response -> {
@@ -61,18 +64,25 @@ public class VideoService {
      * @param url 파일 url
      * @return 파일 사이즈
      */
-    public Long getContentLength(String url) {
+    public Mono<Long> getContentLength(String url) {
+        // retry 로직에 넣지 않음 (단 한번만 실행.)
         if (!videoMetaData.contains(url)) {
             AtomicLong contentLength = new AtomicLong(-1);
-            getDataBuffer(url, contentLength.get())
+            getDataFromUrl(url, contentLength.get())
                     .map(d -> calcDataLength(d, contentLength))
                     .doOnComplete(() -> writeContentLength(url, contentLength))
                     .subscribeOn(Schedulers.boundedElastic())
                     .subscribe();
-            return contentLength.get();
         }
 
-        return videoMetaData.get(url);
+        return Mono.just(videoMetaData.contains(url))
+                .map(hasContentLength -> {
+                    Long contentLength = videoMetaData.get(url);
+                    if (contentLength > 0) {
+                        return videoMetaData.get(url);
+                    }
+                    throw new IllegalStateException(url + " is not save content length");
+                });
     }
 
     private void writeContentLength(String url, AtomicLong contentLength) {

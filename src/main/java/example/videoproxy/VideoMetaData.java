@@ -14,7 +14,7 @@ public class VideoMetaData {
     }
 
     public Long get(String key) {
-        return map.get(key);
+        return map.getOrDefault(key, -1L);
     }
 
     public Long get(String key, Long length) {
