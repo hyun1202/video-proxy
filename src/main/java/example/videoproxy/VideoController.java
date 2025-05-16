@@ -31,22 +31,29 @@ public class VideoController {
         Flux<DataBuffer> data = res.map(ResponseWithHeaders::getDataBuffer);
         return res.next()
                 .map(first -> {
-                    ResponseEntity.BodyBuilder builder = ResponseEntity.ok()
-                            .headers(first.getHeaders())
-                            .contentType(MediaType.parseMediaType("video/mp4"))
-                            .cacheControl(CacheControl.maxAge(Duration.ofDays(14)).cachePublic());
+                    ResponseEntity.BodyBuilder builder = getBodyBuilder();
+                    builder.headers(first.getHeaders());
                     return builder.body(data);
                 })
                 .switchIfEmpty(Mono.defer(() -> {
                     log.info("'{}' is first request, so after 1000 millis retry", url);
                     return Mono.delay(Duration.ofMillis(1000L))
                             .flatMap(tick -> Mono.just(videoService.streamVideo(url)))
-                            .map(flux -> {
-                                ResponseEntity.BodyBuilder builder = ResponseEntity.ok()
-                                        .contentType(MediaType.parseMediaType("video/mp4"))
-                                        .cacheControl(CacheControl.maxAge(Duration.ofDays(14)).cachePublic());
-                                return builder.body(flux.map(ResponseWithHeaders::getDataBuffer));
+                            .flatMap(flux -> {
+                                ResponseEntity.BodyBuilder builder = getBodyBuilder();
+                                return flux.next()
+                                        .map(first -> {
+                                            builder.headers(first.getHeaders());
+                                            return builder.body(flux.map(ResponseWithHeaders::getDataBuffer));
+                                        });
                             });
                 }));
+    }
+
+    private ResponseEntity.BodyBuilder getBodyBuilder() {
+        ResponseEntity.BodyBuilder builder = ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType("video/mp4"))
+                .cacheControl(CacheControl.maxAge(Duration.ofDays(14)).cachePublic());
+        return builder;
     }
 }
