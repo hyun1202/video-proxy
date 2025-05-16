@@ -27,7 +27,7 @@ public class VideoService {
     public Flux<ResponseWithHeaders> streamVideo(String url) {
         log.debug("request url= {}", url);
         return getContentLength(url)
-                .retryWhen(Retry.backoff(3, Duration.ofSeconds(1))
+                .retryWhen(Retry.backoff(5, Duration.ofSeconds(2))
                                    .doBeforeRetry(signal -> log.warn("Retrying for url: {}, attempt: {}, error: {}",
                                                                      url, signal.totalRetries() + 1, signal.failure().getMessage())))
                 .flatMapMany(length -> getDataFromUrl(url, length));
