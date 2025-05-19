@@ -97,4 +97,8 @@ public class VideoService {
         return dataBuffer;
     }
 
+    public void clearContentLength(String url) {
+        videoMetaData.remove(url);
+    }
+
 }

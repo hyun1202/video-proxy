@@ -27,7 +27,11 @@ public class VideoController {
     }
 
     @GetMapping(produces = "video/mp4")
-    public Mono<ResponseEntity<Flux<DataBuffer>>> streamVideo(@RequestParam("url") String url) {
+    public Mono<ResponseEntity<Flux<DataBuffer>>> streamVideo(@RequestParam("url") String url,
+                                                              @RequestParam(value = "new", defaultValue = "false") Boolean isNew) {
+        if (isNew) {
+            videoService.clearContentLength(url);
+        }
         Flux<ResponseWithHeaders> res = videoService.streamVideo(url);
         Flux<DataBuffer> data = res.map(ResponseWithHeaders::getDataBuffer);
         return res.next()
@@ -37,7 +41,6 @@ public class VideoController {
                     return builder.body(data);
                 })
                 .onErrorResume(error -> Mono.empty());
-
     }
 
     private ResponseEntity.BodyBuilder getBodyBuilder() {
