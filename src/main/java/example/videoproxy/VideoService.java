@@ -2,6 +2,7 @@ package example.videoproxy;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -50,8 +51,12 @@ public class VideoService {
                     log.debug("Response headers: {}", headers);
 
                     return response.bodyToFlux(DataBuffer.class)
-                            .map(dataBuffer -> new ResponseWithHeaders(headers, dataBuffer));
+                            .map(dataBuffer -> {
+                                DataBufferUtils.retain(dataBuffer);
+                                return new ResponseWithHeaders(headers, dataBuffer);
+                            });
                 })
+                .doOnDiscard(DataBuffer.class, DataBufferUtils::release)
                 .doOnError(e -> {
                     log.error("Error fetching video: {}", e.getMessage(), e);
                 });
@@ -71,6 +76,7 @@ public class VideoService {
             getDataFromUrl(url, contentLength.get())
                     .map(d -> calcDataLength(d, contentLength))
                     .doOnComplete(() -> writeContentLength(url, contentLength))
+                    .doOnNext(DataBufferUtils::release) // 계산 후 해제
                     .subscribeOn(Schedulers.boundedElastic())
                     .subscribe();
         }

@@ -7,7 +7,6 @@ management:
     env:
       enabled: true
   server:
-    port: 18088
     health:
       show-components: always
   endpoints:

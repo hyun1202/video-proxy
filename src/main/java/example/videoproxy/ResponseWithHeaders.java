@@ -2,6 +2,7 @@ package example.videoproxy;
 
 import lombok.ToString;
 import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.HttpHeaders;
 
 public class ResponseWithHeaders {
@@ -18,7 +19,12 @@ public class ResponseWithHeaders {
     }
 
     public DataBuffer getDataBuffer() {
+        release();
         return dataBuffer;
+    }
+
+    private void release() {
+        DataBufferUtils.release(dataBuffer);
     }
 
     @Override
