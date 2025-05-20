@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.annotation.Order;
+import org.springframework.http.HttpRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
@@ -23,6 +24,11 @@ public class VideoCorsFilter implements WebFilter {
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
+
+        String path = exchange.getRequest().getURI().getPath();
+        if (path.startsWith("/actuator")) {
+            return chain.filter(exchange);
+        }
         String origin = exchange.getRequest().getHeaders().getOrigin();
         origin = removeEndSeparation(origin);
 

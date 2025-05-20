@@ -9,6 +9,7 @@ management:
   server:
     health:
       show-components: always
+    port: 18080
   endpoints:
     web:
       exposure:
